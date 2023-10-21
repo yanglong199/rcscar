@@ -1,0 +1,61 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CoreTest"
+        xmlns:HMIControl="clr-namespace:HMIControl;assembly=HMIControl" x:Class="CoreTest.主页"
+        Title="主页" Height="1080" Width="1920" Tag="CoreTest.MaterialRecivingLine"
+        mc:Ignorable="d"
+    WindowState="Normal" WindowStyle="ToolWindow" Loaded="Window_Loaded" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="180"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Grid.ColumnSpan="3"  Background="#FF444473"/>
+        <Border Grid.Row="1" Background="Black"/>
+        <Border  Grid.Row="2" Grid.ColumnSpan="3" Background="#FFB6B6BE"/>
+        <Border   Grid.Row="1" Grid.Column="2" Background="Black"/>
+        <Border   Grid.Row="1" Grid.Column="1"    Background="#FFA2A2B8"/>
+
+        <StackPanel x:Name="stc1" Grid.Row="1">
+
+            <HMIControl:HMIButton Content="监视画面" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5" TagWindowText="CoreTest.MaterialRecivingLine;" IsUnique="True"/>
+            <HMIControl:HMIButton Content="小车控制" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5" TagWindowText="CoreTest.SiloProductLine;" IsUnique="True"/>
+            <HMIControl:HMIButton Content="数据曲线" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5"/>
+            <HMIControl:HMIButton Content="任务管理" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5"/>
+            <HMIControl:HMIButton Content="参数设置" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5"/>
+            <HMIControl:HMIButton Content="地图管理" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5"/>
+            <HMIControl:HMIButton Content="通讯管理" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5"/>
+            <HMIControl:HMIButton Content="交通管制" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5"/>
+            <HMIControl:HMIButton Content="用户管理" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5"/>
+            <HMIControl:HMIButton Content="外部通讯"   Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5"/>
+            <HMIControl:HMIButton Content="数据报表" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5"/>
+            <HMIControl:HMIButton Content="变量跟踪" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5" TagWindowText="CoreTest.TagMonitor;" IsUnique="True"/>
+            <HMIControl:HMIButton Content="退出" Height="50" Foreground="White" BorderBrush="#FF252526" Background="#FF3D9B55" Margin="0,5" Click="HMIButton_Click"/>
+        </StackPanel>
+        
+            <Border x:Name="cvs1"  Background="#FFB6BBBC"   Grid.Column="1" Grid.Row="1" Margin="5" />
+        
+        <Canvas Name="tite1" Grid.Column="0" Grid.ColumnSpan="3">
+
+                <TextBlock  Text="空中小车调度系统" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center" Canvas.Left="750" Canvas.Top="29" Foreground="#FFE2E0E6"  />
+            </Canvas>
+            <Canvas Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3">
+              
+            <HMIControl:HMILable Canvas.Left="111" Canvas.Top="0" Height="40" x:Name="txtuser" Width="198" Text="" TextAlignment="Left" BorderStyle="FixedSingle" Foreground="#FF6C6C6C" FontSize="16" />
+            <HMIControl:HMILable   BorderStyle="FixedSingle" Canvas.Left="1749" Canvas.Top="0" FontSize="16" Foreground="#FF6C6C6C" Height="40" x:Name="txttime" Text="控制模式：远程控制" TextAlignment="Left" Width="143" />
+            <Ellipse Canvas.Left="1708" Canvas.Top="4" Height="33" x:Name="p1_lamp1" StrokeThickness="2" Width="33" />
+            <TextBlock Canvas.Top="9" Canvas.Right="0" x:Name="txtAlarm" FontSize="16" Foreground="#FF6C6C6C"/>
+        </Canvas>
+
+
+    </Grid>
+</Window>

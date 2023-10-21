@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Controls;
 using System.Windows.Input;
-
+using System.Windows.Media;
 namespace HMIControl
 {
     [Startable]
@@ -176,28 +176,28 @@ namespace HMIControl
         }
     }
 
-    public class HMIText : HMIControlBase, ITagWriter
+    public class HMIText : TextBox, ITagWriter,ITagReader      // HMIControlBase,
     {
         public static DependencyProperty BorderStyleProperty = DependencyProperty.Register("BorderStyle", typeof(BorderStyle), typeof(HMIText),
              new FrameworkPropertyMetadata(BorderStyle.None, FrameworkPropertyMetadataOptions.AffectsRender));
 
-        public static DependencyProperty TextAlignmentProperty = DependencyProperty.Register("TextAlignment", typeof(TextAlignment), typeof(HMIText),
-             new FrameworkPropertyMetadata(TextAlignment.Center, FrameworkPropertyMetadataOptions.AffectsRender));
+       // public static DependencyProperty TextAlignmentProperty = DependencyProperty.Register("TextAlignment", typeof(TextAlignment), typeof(HMIText),
+       //      new FrameworkPropertyMetadata(TextAlignment.Center, FrameworkPropertyMetadataOptions.AffectsRender));
 
-        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(HMIText),
-          new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.AffectsRender));
+      //  public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(HMIText),
+       //   new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.AffectsRender));
 
         public static readonly DependencyProperty TagWriteTextProperty = DependencyProperty.Register("TagWriteText", typeof(string), typeof(HMIText));
-
+        public static readonly DependencyProperty TagReadTextProperty = DependencyProperty.Register("TagReadText", typeof(string), typeof(HMIText));
         public static readonly DependencyProperty IsPulseProperty = DependencyProperty.Register("IsPulse", typeof(bool), typeof(HMIText), new FrameworkPropertyMetadata(false));
 
 
         public static DependencyProperty StringFormatProperty = DependencyProperty.Register("StringFormat", typeof(string), typeof(HMIText));
 
-        public override string[] GetActions()
+        public  string[] GetActions()              //
         {
             return new string[] { TagActions.VISIBLE, TagActions.CAPTION, TagActions.DEVICENAME, TagActions.TEXT };
-        }
+       }
 
         protected override void OnRender(DrawingContext drawingContext)
         {
@@ -235,7 +235,7 @@ namespace HMIControl
             }
         }
 
-        [Category("HMI")]
+        [Category("Common")]
         public BorderStyle BorderStyle
         {
             get
@@ -248,7 +248,7 @@ namespace HMIControl
             }
         }
 
-        [Category("Text")]
+        [Category("Common")]
         public TextAlignment TextAlignment
         {
             get
@@ -261,7 +261,7 @@ namespace HMIControl
             }
         }
 
-        [Category("HMI")]
+        [Category("Common")]
         public string Text
         {
             get
@@ -274,7 +274,7 @@ namespace HMIControl
             }
         }
 
-        [Category("HMI")]
+        [Category("Common")]
         public string StringFormat
         {
             get
@@ -286,8 +286,44 @@ namespace HMIControl
                 base.SetValue(StringFormatProperty, value);
             }
         }
+        [Category("Common")]
+        public string TagWriteText
+        {
+            get
+            {
+                return (string)base.GetValue(TagWriteTextProperty);
+            }
+            set
+            {
+                base.SetValue(TagWriteTextProperty, value);
+            }
+        }
 
-        public override Action SetTagReader(string key, Delegate tagChanged)
+        [Category("Common")]
+        public bool IsPulse
+        {
+            get
+            {
+                return (bool)base.GetValue(IsPulseProperty);
+            }
+            set
+            {
+                base.SetValue(IsPulseProperty, value);
+            }
+        }
+        [Category("Common")]
+        public string TagReadText
+        {
+            get
+            {
+                return (string)base.GetValue(TagReadTextProperty);
+            }
+            set
+            {
+                base.SetValue(TagReadTextProperty, value);
+            }
+        }
+        public  Action SetTagReader(string key, Delegate tagChanged)
         {
             switch (key)
             {
@@ -328,34 +364,23 @@ namespace HMIControl
                     }
                     return null;
             }
-            return base.SetTagReader(key, tagChanged);
+                  return null;
+            //  return base.SetTagReader(key, tagChanged);
         }
 
-        [Category("Common")]
-        public string TagWriteText
-        {
-            get
-            {
-                return (string)base.GetValue(TagWriteTextProperty);
-            }
-            set
-            {
-                base.SetValue(TagWriteTextProperty, value);
-            }
-        }
 
-        [Category("HMI")]
-        public bool IsPulse
-        {
-            get
-            {
-                return (bool)base.GetValue(IsPulseProperty);
-            }
-            set
-            {
-                base.SetValue(IsPulseProperty, value);
-            }
-        }
+     //   public  string[] GetActions()
+    //   {
+      //      return new[] { TagActions.Text };
+        //}
+
+
+        public string Node => throw new NotImplementedException();
+
+       // public string TagReadText { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public IList<ITagLink> Children => throw new NotImplementedException();
+
         protected List<Func<object, int>> _funcWrites = new List<Func<object, int>>();
         public bool SetTagWriter(IEnumerable<Delegate> tagWriter)
         {

@@ -36,12 +36,12 @@ namespace BatchCoreService
         int DELAY = 3000;
         int MAXHDACAP = 10000;
         int ALARMLIMIT = 1000;
-        int CYCLE = 60000;
+        int CYCLE = 100;
         int CYCLE2 = 600000;
         int SENDTIMEOUT = 60000;
         //int SENDSIZE = ushort.MaxValue;
         int HDALEN = 1024 * 1024;
-        int MAXLOGSIZE = 1024;
+        int MAXLOGSIZE = 1024;                                     //
         int HDADELAY = 3600 * 1000;
         int ALARMDELAY = 3600 * 1000;
         int ARCHIVEINTERVAL = 100;
@@ -51,18 +51,19 @@ namespace BatchCoreService
         private System.Timers.Timer timer1 = new System.Timers.Timer();
         private System.Timers.Timer timer2 = new System.Timers.Timer();
         private System.Timers.Timer timer3 = new System.Timers.Timer();
-        private DateTime _hdastart = DateTime.Now;
-        private DateTime _alarmstart = DateTime.Now;
+        private DateTime _hdastart = DateTime.Now;                       //历史数据存储开始时间
+        private DateTime _alarmstart = DateTime.Now;                     //报警数据存储开始时间
 
+ 
         #region DAServer（标签数据服务器）
         public ITag this[short id]
         {
             get
             {
-                int index = GetItemProperties(id);
+                int index = GetItemProperties(id);                      //通过id号得到在集合中的序号
                 if (index >= 0)
                 {
-                    return this[_list[index].Name];
+                    return this[_list[index].Name];                    //返回集合中的对用序号的标签名
                 }
                 return null;
             }
@@ -109,8 +110,8 @@ namespace BatchCoreService
             }
         }
 
-        bool _hasHda = false;
-        List<HistoryData> _hda;
+        bool _hasHda = false;                                                            //初始化数据归档关闭
+        List<HistoryData> _hda;                                                         //定义归档集合
         List<DriverArgumet> _arguments = new List<DriverArgumet>();
         Dictionary<short, ArchiveTime> _archiveTimes = new Dictionary<short, ArchiveTime>();
 
@@ -180,9 +181,9 @@ namespace BatchCoreService
 
         public DAService()
         {
-            if (!EventLog.SourceExists(SERVICELOGSOURCE))
+            if (!EventLog.SourceExists(SERVICELOGSOURCE))             //是否用管理员运行
             {
-                EventLog.CreateEventSource(SERVICELOGSOURCE, SERVICELOGNAME);
+                EventLog.CreateEventSource(SERVICELOGSOURCE, SERVICELOGNAME);      //创建一个服务
             }
             Log = new EventLog(SERVICELOGNAME);
             Log.Source = SERVICELOGSOURCE;
@@ -193,19 +194,22 @@ namespace BatchCoreService
             {
                 // 當EventLog 滿了就把最早的那一筆log 蓋掉。
                 Log.ModifyOverflowPolicy(OverflowAction.OverwriteAsNeeded, 7);
-            }
+            }                                                                                      //以上为服务的日志操作，将server的xml文件的值读出并给日志操作相关赋值
             _scales = new List<Scaling>();
-            _drivers = new SortedList<short, IDriver>();
-            _alarmList = new List<AlarmItem>(ALARMLIMIT + 10);
-            reval = new ExpressionEval(this);
-            _hda = new List<HistoryData>();
-            InitServerByDatabase();
-            InitConnection();
+            _drivers = new SortedList<short, IDriver>();                           //排序的驱动集合，连接集合带组的
+            _alarmList = new List<AlarmItem>(ALARMLIMIT + 10);                     //报警集合
+            reval = new ExpressionEval(this);                                     
+            _hda = new List<HistoryData>();                                       //历史数据集合
+            InitServerByDatabase();                                               //初始化数据库，加载各类数据到集合中
+            InitConnection();                                                          //初始化连接，连接plc驱动，绑定grop中的数据变化事件
             _socketThreadList = new Dictionary<IPAddress, Socket>();
-            InitHost();
+            InitHost();                                                      //初始化监听程序,开启服务器，监听客户端接收客户端数据并处理，将客户端IP写入_socketThreadList
+            Thread thread1 = new Thread(Work1);
+            thread1.IsBackground = true;
+            thread1.Start();
 
-            timer1.Elapsed += timer1_Elapsed;
-            timer2.Elapsed += timer2_Elapsed;
+            timer1.Elapsed += timer1_Elapsed;                               //定时器1是判断队列内的ip链接是否连接成功，如果线程关闭自动从新连接ip
+            timer2.Elapsed += timer2_Elapsed;                               //存历史数据和报警数据到数据库中
             timer3.Elapsed += timer3_Elapsed;
             timer1.Interval = CYCLE;
             timer1.Enabled = true;
@@ -221,7 +225,7 @@ namespace BatchCoreService
                     {
                         timer3.Interval = ARCHIVEINTERVAL;
                         timer3.Enabled = true;
-                        timer3.Start();
+                        timer3.Start();                               //定时器3定时采集跟新的数据，大于设定值后缓存数据存到数据库内
                         return;
                     }
                 }
@@ -242,7 +246,7 @@ namespace BatchCoreService
                         timer3.Dispose();
                     if (_drivers != null)
                     {
-                        foreach (var driver in Drivers)
+                        foreach (var driver in Drivers)                  
                         {
                             driver.OnError -= this.reader_OnClose;
                             driver.Dispose();
@@ -296,7 +300,7 @@ namespace BatchCoreService
 
         private void timer2_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (HDADELAY > 0 && _hda.Count > 0 && (DateTime.Now - _hdastart).TotalMilliseconds > HDADELAY)
+            if (HDADELAY > 0 && _hda.Count > 0 && (DateTime.Now - _hdastart).TotalMilliseconds > HDADELAY)    //间隔时间大于3600s 后调用存储数据，清空历史数据集合
             {
                 lock (_hdaRoot)
                 {
@@ -304,7 +308,7 @@ namespace BatchCoreService
                     _hda.Clear();
                 }
             }
-            if (ALARMDELAY > 0 && _alarmList.Count > 0 && (DateTime.Now - _alarmstart).TotalMilliseconds > ALARMDELAY)
+            if (ALARMDELAY > 0 && _alarmList.Count > 0 && (DateTime.Now - _alarmstart).TotalMilliseconds > ALARMDELAY)    //间隔时间大于3600s 存报警数据到数据库清空报警集合
                 SaveAlarm();
             DateTime today = DateTime.Today;
             try
@@ -371,7 +375,7 @@ namespace BatchCoreService
         {
             foreach (IDriver reader in _drivers.Values)
             {
-                reader.OnError += new IOErrorEventHandler(reader_OnClose);
+                reader.OnError += new IOErrorEventHandler(reader_OnClose);                       //驱动报错事件，调用日志写1
                 if (reader.IsClosed)
                 {
                     //if (reader is IFileDriver)
@@ -379,15 +383,15 @@ namespace BatchCoreService
                 }
                 foreach (IGroup grp in reader.Groups)
                 {
-                    grp.DataChange += new DataChangeEventHandler(grp_DataChange);
+                    grp.DataChange += new DataChangeEventHandler(grp_DataChange);                 //组中数据改变事件触发
                     //可在此加入判断，如为ClientDriver发出，则变化数据毋须广播，只需归档。
-                    grp.IsActive = grp.IsActive;
+                    grp.IsActive = grp.IsActive;                            //触发定时采集程序
                 }
             }
             //此处需改进,与Condition采用相同的处理方式，可配置
         }
 
-        void InitServerByDatabase()
+        void InitServerByDatabase()                                //初始化服务器读取各类数据进入集合中
         {
             using (var dataReader = DataHelper.Instance.ExecuteProcedureReader("InitServer", DataHelper.CreateParam("@TYPE", SqlDbType.Int, 0)))
             {
@@ -430,7 +434,7 @@ namespace BatchCoreService
                         IGroup grp = dv.AddGroup(dataReader.GetString(1), dataReader.GetInt16(2), dataReader.GetInt32(3),
                                dataReader.GetFloat(4), dataReader.GetBoolean(5));
                         if (grp != null)
-                            grp.AddItems(_list);
+                            grp.AddItems(_list);                //加入读取到的各种数据分别进入各类集合中
                     }
                 }
                 dataReader.NextResult();
@@ -546,10 +550,10 @@ namespace BatchCoreService
             ThreadPool.QueueUserWorkItem(new WaitCallback(AcceptWorkThread));
         }
 
-        void InitServerByXml()
+        void InitServerByXml()                    //初始化服务的xml  ,将相关的服务参数值写给对应的参数值
         {
             string path = PATH + '\\' + FILENAME;
-            if (File.Exists(path))
+            if (File.Exists(path))                 //确定serverxml文件在c盘中存在
             {
                 try
                 {
@@ -564,7 +568,7 @@ namespace BatchCoreService
                                     case "Server":
                                         {
                                             if (reader.MoveToAttribute("MaxLogSize"))
-                                                int.TryParse(reader.Value, out MAXLOGSIZE);
+                                                int.TryParse(reader.Value, out MAXLOGSIZE);    
                                         }
                                         break;
                                     case "Data":
@@ -612,7 +616,7 @@ namespace BatchCoreService
         }
         #endregion
 
-        void AcceptWorkThread(object state)
+        void AcceptWorkThread(object state)                      //加入客户端ip到列表，调用客户端接收数据处理
         {
             while (true)
             {
@@ -963,7 +967,7 @@ namespace BatchCoreService
                     AddErrorLog(ex);
                 }
             }
-        }
+        }                //客户端数据接收后处理
 
         #region 历史数据归档查询
         private IEnumerable<HistoryData> GetHData(DateTime start, DateTime end, short ID)
@@ -1185,7 +1189,7 @@ namespace BatchCoreService
             lock (_hdaRoot)
             {
                 var tempData = (List<HistoryData>)stateInfo;
-                _hda.AddRange(tempData);
+                _hda.AddRange(tempData);                             //将变化的数据，写入到归档数据集合
                 if (_hda.Count >= MAXHDACAP)
                 {
                     //Reverse(data);
@@ -1320,11 +1324,11 @@ namespace BatchCoreService
             return rs;
         }
 
-        void grp_DataChange(object sender, DataChangeEventArgs e)
+        void grp_DataChange(object sender, DataChangeEventArgs e)            //数据改变事件，处理函数   读取变化的数据，
         {
             var data = e.Values;
             var now = DateTime.Now;
-            if (_hasHda)
+            if (_hasHda)                               //开启历史数据归档
             {
                 ArchiveTime archiveTime;
                 List<HistoryData> tempData = new List<HistoryData>(20);
@@ -1337,10 +1341,10 @@ namespace BatchCoreService
                 }
                 if (tempData.Count > 0)
                 {
-                    ThreadPool.UnsafeQueueUserWorkItem(new WaitCallback(this.OnUpdate), tempData);
+                    ThreadPool.UnsafeQueueUserWorkItem(new WaitCallback(this.OnUpdate), tempData);                  //回调更新数据
                 }
             }
-            if (_socketThreadList != null && _socketThreadList.Count > 0)
+            if (_socketThreadList != null && _socketThreadList.Count > 0)                                        //有客户端，调用发送数据到客户端
             {
                 IPAddress addr = null;
                 var grp = sender as ClientGroup;
@@ -1473,18 +1477,18 @@ namespace BatchCoreService
             }
         }
 
-        public IDriver AddDriver(short id, string name, string assembly, string className)
+        public IDriver AddDriver(short id, string name, string assembly, string className)          //加载相关驱动  如  modbus
         {
             if (_drivers.ContainsKey(id))
                 return _drivers[id];
             IDriver dv = null;
             try
             {
-                Assembly ass = Assembly.LoadFrom(assembly);
-                var dvType = ass.GetType(className);
+                Assembly ass = Assembly.LoadFrom(assembly);                           //反射根据 程序集名称及其后缀名
+                var dvType = ass.GetType(className);                                  //获取指定类型类
                 if (dvType != null)
                 {
-                    dv = Activator.CreateInstance(dvType, new object[] { this, id, name }) as IDriver;
+                    dv = Activator.CreateInstance(dvType, new object[] { this, id, name }) as IDriver;      //实列化对象    
                     if (dv != null)
                     {
                         foreach (var arg in _arguments)
@@ -1895,8 +1899,148 @@ namespace BatchCoreService
             throw new NotImplementedException();
         }
         #endregion
-    }
 
+
+        //后台业务逻辑
+        public Backstage backwork = new Backstage();
+        List<valueset> all = new List<valueset>();
+        public Dictionary<IGroup, Dictionary<ITag,object>> Writelist = new Dictionary<IGroup, Dictionary<ITag, object>>();
+        public void  Work1()
+        {
+
+            backwork._list = _list;
+            backwork._maping = _mapping;
+            while (true)
+            {
+               
+                List<valueset> heart1 = new List<valueset>();
+                List<valueset> heart3 = new List<valueset>();
+                List<valueset> texterror = new List<valueset>();
+                texterror = backwork.connectfos(_drivers);
+            
+           List<TagMetaData>kk =_list.FindAll( d => d.Address=="01047");
+                List<TagMetaData> mm = _list.FindAll(d => d.Address == "410001");
+                List<ITag> heat2 = new List<ITag>();
+                valueset vaa = new valueset();
+                foreach (TagMetaData m in mm)
+                {
+                    Int32 va = 9000;
+                    ITag tt = this[m.ID];
+                    vaa.Id = m.ID;
+                    vaa.Value = va;
+                    
+                }
+                foreach (TagMetaData m in kk)
+            {
+                    
+                ITag tta = this[m.ID];
+                heat2.Add(tta);
+            }
+            heart1 = backwork.Getheartprotect(heat2, true);
+            all.AddRange(heart1);
+                all.Add(vaa);
+            AddWritelist(all);
+            
+            
+
+                }
+
+            
+        } 
+
+        /// <summary>
+        /// 把需要写的数据加入writelist集合中，按组分
+        /// </summary>
+        /// <param name="all"></param>
+        public void AddWritelist(List<valueset>all)
+        {
+            Dictionary<ITag, object> values = new Dictionary<ITag, object>();
+            if (all!=null)
+            { 
+            foreach(valueset a in all)
+            {
+                ITag tag = this[a.Id];
+                    IGroup grp = tag.Parent;
+
+                    //ITag tag = this[id];
+                    //if (tag != null)
+                    //{
+                    //    IGroup grp = tag.Parent;
+                    //    if (!dict.ContainsKey(grp))
+                    //        dict.Add(grp, new List<ITag> { tag });
+                    //    else
+                    //        dict[grp].Add(tag);
+                    //}
+
+
+
+
+
+                    if (!Writelist.ContainsKey(grp))
+                    {
+                        Writelist.Add(grp, new Dictionary<ITag, object> ());
+                        Writelist[grp].Add(tag, a.Value);
+                    }
+                    else Writelist[grp].Add(tag, a.Value);
+
+
+                    switch (tag.Address.VarType)
+                    {
+                        case DataType.BOOL:
+                            values.Add(tag, (bool)a.Value);
+                            break;
+                        case DataType.BYTE:
+                            values.Add(tag, (byte)a.Value);
+                            break;
+                        case DataType.WORD:
+                            values.Add(tag, (int)a.Value);
+                            break;
+                        case DataType.SHORT:
+                            values.Add(tag, (short)a.Value);
+                            break;
+                        case DataType.DWORD:
+                            values.Add(tag, (Int32)a.Value);
+                            break;
+                        case DataType.INT:
+                            values.Add(tag, (int)a.Value);
+                            break;
+                        case DataType.FLOAT:
+                            values.Add(tag, (float)a.Value);
+                            break;
+                        case DataType.STR:
+                            values.Add(tag, (string)a.Value);
+                            break;
+                    }
+                    // Dictionary<IGroup, Dictionary<ITag, object>> Wri = new Dictionary<IGroup, Dictionary<ITag, object>>();
+
+               
+            }
+                foreach (var Wri in Writelist)
+                {
+                    IGroup ma = Wri.Key;
+                    ma.writedlist = Wri.Value;
+
+                }
+
+
+
+                Writelist.Clear();
+                all.Clear();
+            }
+         
+
+
+        }
+
+
+
+
+
+
+
+
+}
+   //daservice类结束
     class DriverArgumet
     {
         public short DriverID;

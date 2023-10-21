@@ -1,0 +1,11 @@
+E:\c#\SharpSCADA-master\SCADA\Program\DataService\bin\Debug\DataService.dll
+E:\c#\SharpSCADA-master\SCADA\Program\DataService\bin\Debug\DataService.pdb
+E:\c#\SharpSCADA-master\SCADA\Program\DataService\obj\Debug\DataService.csproj.AssemblyReference.cache
+E:\c#\SharpSCADA-master\SCADA\Program\DataService\obj\Debug\DataService.csproj.CoreCompileInputs.cache
+E:\c#\SharpSCADA-master\SCADA\Program\DataService\obj\Debug\DataService.dll
+E:\c#\SharpSCADA-master\SCADA\Program\DataService\obj\Debug\DataService.pdb
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataService\bin\Debug\DataService.dll
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataService\bin\Debug\DataService.pdb
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataService\obj\Debug\DataService.csproj.CoreCompileInputs.cache
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataService\obj\Debug\DataService.dll
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataService\obj\Debug\DataService.pdb

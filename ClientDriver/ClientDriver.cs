@@ -280,6 +280,8 @@ namespace ClientDriver
             get { return _addr; }
         }
 
+        public Dictionary<ITag, object> writedlist { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public ClientGroup(short id, string name, int updateRate, bool active, ClientReader plcReader)
         {
             this._id = id;

@@ -30,7 +30,7 @@ namespace DataService
 
 
     public interface ICache : IReaderWriter      //缓存接口，对下位机的地址变量映射，映射到一个连续的内存地址空间，便于统一编号，统一管理。
-    {
+    {                                            //缓存字典接口，读取缓存大小字节，用余读取数据与暂存数据比较推送变化数据到上层更新数据
         int Size { get; set; }
         int ByteCount { get; }
         Array Cache { get; }
@@ -59,14 +59,14 @@ namespace DataService
         event IOErrorEventHandler OnError;
     }
 
-    public interface IPLCDriver : IDriver, IReaderWriter             //专门描述PLC类型下位机
+    public interface IPLCDriver : IDriver, IReaderWriter             //专门描述PLC类型下位机,plc接口读取地址
     {
         int PDU { get; }
         DeviceAddress GetDeviceAddress(string address);
         string GetAddress(DeviceAddress address);
     }
 
-    public interface IFileDriver : IDriver, IReaderWriter                //代表另一类下位机，比如来自数据库、文件流等
+    public interface IFileDriver : IDriver, IReaderWriter                //代表另一类下位机，比如来自数据库、文件流等，文件读取接口
     {
         string FileName { get; set; }
         FileData[] ReadAll(short groupId);

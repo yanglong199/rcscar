@@ -389,7 +389,7 @@ namespace DataService
             }
             else
             {
-                result = (_cache[startIndex + 1] << 16) | ((ushort)_cache[startIndex]);
+                result = (_cache[startIndex + 1] << 16) | ((ushort)_cache[startIndex]);             //手动改，高低字节切换
             }
             return new ItemData<int>(result, 0, QUALITIES.QUALITY_GOOD);
         }
@@ -576,13 +576,15 @@ namespace DataService
         {
             int startIndex = address.CacheIndex;
             int result;
+      
             if (startIndex == _cache.Length - 1)
             {
                 result = _cache[startIndex];
             }
             else
             {
-                result = (IPAddress.HostToNetworkOrder(_cache[startIndex]) << 16) | ((ushort)IPAddress.HostToNetworkOrder(_cache[startIndex + 1]));
+                result = (IPAddress.HostToNetworkOrder(_cache[startIndex+1]) << 16) | ((ushort)IPAddress.HostToNetworkOrder(_cache[startIndex ]));
+               // result = (IPAddress.HostToNetworkOrder(_cache[startIndex]) << 16) | ((ushort)IPAddress.HostToNetworkOrder(_cache[startIndex + 1]));              原有程序
             }
             return new ItemData<int>(result, 0, QUALITIES.QUALITY_GOOD);
         }

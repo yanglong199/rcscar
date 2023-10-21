@@ -122,6 +122,9 @@
       <DependentUpon>Trend.xaml</DependentUpon>
     </Compile>
     <Compile Include="WindowHelper.cs" />
+    <Compile Include="主页.xaml.cs">
+      <DependentUpon>主页.xaml</DependentUpon>
+    </Compile>
     <Page Include="AlarmSet.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -163,6 +166,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Trend.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="主页.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

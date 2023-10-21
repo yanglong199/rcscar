@@ -1,0 +1,11 @@
+E:\c#\SharpSCADA-master\SCADA\Program\OPCLib\bin\Debug\OPCLib.dll
+E:\c#\SharpSCADA-master\SCADA\Program\OPCLib\bin\Debug\OPCLib.pdb
+E:\c#\SharpSCADA-master\SCADA\Program\OPCLib\obj\Debug\OPCLib.csproj.AssemblyReference.cache
+E:\c#\SharpSCADA-master\SCADA\Program\OPCLib\obj\Debug\OPCLib.csproj.CoreCompileInputs.cache
+E:\c#\SharpSCADA-master\SCADA\Program\OPCLib\obj\Debug\OPCLib.dll
+E:\c#\SharpSCADA-master\SCADA\Program\OPCLib\obj\Debug\OPCLib.pdb
+D:\学习\c#\SharpSCADA-master\SCADA\Program\OPCLib\bin\Debug\OPCLib.dll
+D:\学习\c#\SharpSCADA-master\SCADA\Program\OPCLib\bin\Debug\OPCLib.pdb
+D:\学习\c#\SharpSCADA-master\SCADA\Program\OPCLib\obj\Debug\OPCLib.csproj.CoreCompileInputs.cache
+D:\学习\c#\SharpSCADA-master\SCADA\Program\OPCLib\obj\Debug\OPCLib.dll
+D:\学习\c#\SharpSCADA-master\SCADA\Program\OPCLib\obj\Debug\OPCLib.pdb

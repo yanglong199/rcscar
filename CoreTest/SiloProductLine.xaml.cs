@@ -31,5 +31,7 @@ namespace CoreTest
                 App.Server.RemoveHandles(_valueChangedList);
             }
         }
+
+
     }
 }

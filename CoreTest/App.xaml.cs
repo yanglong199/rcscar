@@ -79,7 +79,7 @@ namespace CoreTest
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            MainWindow w1 = null, w2 = null, w3 = null, w4 = null;
+            主页 w1 = null, w2 = null, w3 = null, w4 = null;      //mainwindow
             Screen s1, s2, s3, s4;
             Rectangle r1, r2, r3, r4;
 
@@ -89,7 +89,7 @@ namespace CoreTest
             #region
             if (Screen.AllScreens.Length == 1)//Server.SD.ScreenCount
             {
-                w1 = new MainWindow();
+                w1 = new 主页();                                      //MainWindow
                 w1.WindowStartupLocation = WindowStartupLocation.Manual;
                 s1 = Screen.AllScreens[0];
                 r1 = s1.WorkingArea;
@@ -99,7 +99,7 @@ namespace CoreTest
             }
             else if (Screen.AllScreens.Length == 2)
             {
-                w1 = new MainWindow();
+                w1 = new 主页();
                 w1.WindowStartupLocation = WindowStartupLocation.Manual;
                 s1 = Screen.AllScreens[0];
                 r1 = s1.WorkingArea;
@@ -107,7 +107,7 @@ namespace CoreTest
                 w1.Left = r1.Left;
                 w1.Show();
 
-                w2 = new MainWindow();
+                w2 = new 主页();
                 w2.WindowStartupLocation = WindowStartupLocation.Manual;
                 s2 = Screen.AllScreens[1];
                 r2 = s2.WorkingArea;
@@ -118,7 +118,7 @@ namespace CoreTest
             }
             else if (Screen.AllScreens.Length == 3)
             {
-                w1 = new MainWindow();
+                w1 = new 主页();
                 w1.WindowStartupLocation = WindowStartupLocation.Manual;
                 s1 = Screen.AllScreens[0];
                 r1 = s1.WorkingArea;
@@ -126,7 +126,7 @@ namespace CoreTest
                 w1.Left = r1.Left;
                 w1.Show();
 
-                w2 = new MainWindow();
+                w2 = new 主页();
                 w2.WindowStartupLocation = WindowStartupLocation.Manual;
                 s2 = Screen.AllScreens[1];
                 r2 = s2.WorkingArea;
@@ -135,7 +135,7 @@ namespace CoreTest
                 w2.Show();
                 w2.Owner = w1;
 
-                w3 = new MainWindow();
+                w3 = new 主页();
                 w3.WindowStartupLocation = WindowStartupLocation.Manual;
                 s3 = Screen.AllScreens[2];
                 r3 = s3.WorkingArea;
@@ -146,7 +146,7 @@ namespace CoreTest
             }
             else if (Screen.AllScreens.Length == 4)
             {
-                w1 = new MainWindow();
+                w1 = new 主页();
                 w1.WindowStartupLocation = WindowStartupLocation.Manual;
                 s1 = Screen.AllScreens[0];
                 r1 = s1.WorkingArea;
@@ -154,7 +154,7 @@ namespace CoreTest
                 w1.Left = r1.Left;
                 w1.Show();
 
-                w2 = new MainWindow();
+                w2 = new 主页();
                 w2.WindowStartupLocation = WindowStartupLocation.Manual;
                 s2 = Screen.AllScreens[1];
                 r2 = s2.WorkingArea;
@@ -163,7 +163,7 @@ namespace CoreTest
                 w2.Show();
                 w2.Owner = w1;
 
-                w3 = new MainWindow();
+                w3 = new 主页();
                 w3.WindowStartupLocation = WindowStartupLocation.Manual;
                 s3 = Screen.AllScreens[2];
                 r3 = s3.WorkingArea;
@@ -172,7 +172,7 @@ namespace CoreTest
                 w3.Show();
                 w3.Owner = w1;
 
-                w4 = new MainWindow();
+                w4 = new 主页();
                 w4.WindowStartupLocation = WindowStartupLocation.Manual;
                 s4 = Screen.AllScreens[3];
                 r4 = s3.WorkingArea;

@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ModbusDriver
 {
@@ -26,7 +28,7 @@ namespace ModbusDriver
             get { return 249; } //0xF9 十进制为249
         }
 
-        public DeviceAddress GetDeviceAddress(string address)
+        public DeviceAddress GetDeviceAddress(string address)                //把连接的变量地址转为区域变量用与读写
         {
             DeviceAddress dv = DeviceAddress.Empty;
             if (string.IsNullOrEmpty(address))
@@ -107,7 +109,7 @@ namespace ModbusDriver
         }
 
         #endregion
-        private int _timeout = 1000;
+        private int _timeout = 200;
 
         private Socket tcpSynCl;
         private byte[] tcpSynClBuffer = new byte[0xFF];
@@ -149,8 +151,10 @@ namespace ModbusDriver
             get
             {
                 return tcpSynCl == null || tcpSynCl.Connected == false;
+               
             }
         }
+      
 
         public int TimeOut
         {
@@ -193,6 +197,7 @@ namespace ModbusDriver
                 tcpSynCl.ReceiveTimeout = _timeout;
                 tcpSynCl.NoDelay = true;
                 tcpSynCl.Connect(_ip, _port);
+                System.Diagnostics.Debug.WriteLine("modbustcp 连线");
                 return true;
             }
             catch (SocketException error)
@@ -244,6 +249,84 @@ namespace ModbusDriver
         }
 
         object _async = new object();
+        public void WriteSyncData2(byte[] write_data)
+        {
+            short id = BitConverter.ToInt16(write_data, 0);
+            if (IsClosed) CallException(id, write_data[7], Modbus.excExceptionConnectionLost);
+            else
+            {
+                lock (_async)
+                {
+                    try
+                    {
+                        tcpSynCl.Send(write_data, 0, write_data.Length, SocketFlags.None);//是否存在lock的问题？
+
+
+                        int result = tcpSynCl.Receive(tcpSynClBuffer, 0, 0xFF, SocketFlags.None);
+
+                        byte function = tcpSynClBuffer[7];
+                        byte[] data;
+
+                        if (result == 0) CallException(id, write_data[7], Modbus.excExceptionConnectionLost);
+
+                        // ------------------------------------------------------------
+                        // Response data is slave ModbusModbus.exception
+                        bool cleck = Crcc(write_data);
+                        if (cleck)
+                        {
+                            for (int ii = 0; ii < 10;)
+                            {
+                                int result2 = tcpSynCl.Receive(tcpSynClBuffer, 0, 0xFF, SocketFlags.None);
+                                bool cleck2 = Crcc(write_data);
+                                if (cleck2)
+                                {
+                                    ii++;
+                                }
+                                else break;
+
+                            }
+
+
+                         //   return null;
+
+
+                        }
+                        else
+                        {
+                            if (function > Modbus.excExceptionOffset)
+                            {
+                                function -= Modbus.excExceptionOffset;
+                                CallException(id, function, tcpSynClBuffer[8]);
+                              //  return null;
+                            }
+                            // ------------------------------------------------------------
+                            // Write response data
+                            else if ((function >= Modbus.fctWriteSingleCoil) && (function != Modbus.fctReadWriteMultipleRegister))
+                            {
+                                data = new byte[2];
+                                Array.Copy(tcpSynClBuffer, 10, data, 0, 2);
+                            }
+                            // ------------------------------------------------------------
+                            // Read response data
+                            else
+                            {
+                                data = new byte[tcpSynClBuffer[8]];
+                                Array.Copy(tcpSynClBuffer, 9, data, 0, tcpSynClBuffer[8]);
+                            }
+                      //      return data;
+                            Array.Clear(tcpSynClBuffer, 0, tcpSynClBuffer.Length);
+
+                        }
+                    }
+                    catch (SocketException)
+                    {
+                        CallException(id, write_data[7], Modbus.excExceptionConnectionLost);
+                    }
+                }
+            }
+            Array.Clear(tcpSynClBuffer, 0, tcpSynClBuffer.Length);
+            //return null;
+        }
         private byte[] WriteSyncData(byte[] write_data)
         {
             short id = BitConverter.ToInt16(write_data, 0);
@@ -255,15 +338,38 @@ namespace ModbusDriver
                     try
                     {
                         tcpSynCl.Send(write_data, 0, write_data.Length, SocketFlags.None);//是否存在lock的问题？
-                        int result = tcpSynCl.Receive(tcpSynClBuffer, 0, 0xFF, SocketFlags.None);
+                      
 
+                        int result = tcpSynCl.Receive(tcpSynClBuffer, 0, 0xFF, SocketFlags.None);
+               
                         byte function = tcpSynClBuffer[7];
                         byte[] data;
 
                         if (result == 0) CallException(id, write_data[7], Modbus.excExceptionConnectionLost);
 
-                        // ------------------------------------------------------------
-                        // Response data is slave ModbusModbus.exception
+                    // ------------------------------------------------------------
+                    // Response data is slave ModbusModbus.exception
+                               bool cleck=   Crcc(write_data);
+                        if (cleck)
+                        {
+                           for(int ii=0;ii<10;)
+                           {
+                            int result2 = tcpSynCl.Receive(tcpSynClBuffer, 0, 0xFF, SocketFlags.None);
+                            bool cleck2 = Crcc(write_data);
+                            if (cleck2)
+                            {
+                                ii++;
+                            }
+                            else break;
+
+                           }
+                            
+
+                            return null;
+
+
+                        }
+                        else { 
                         if (function > Modbus.excExceptionOffset)
                         {
                             function -= Modbus.excExceptionOffset;
@@ -285,6 +391,9 @@ namespace ModbusDriver
                             Array.Copy(tcpSynClBuffer, 9, data, 0, tcpSynClBuffer[8]);
                         }
                         return data;
+                            Array.Clear(tcpSynClBuffer, 0, tcpSynClBuffer.Length);
+         
+                    }
                     }
                     catch (SocketException)
                     {
@@ -292,16 +401,43 @@ namespace ModbusDriver
                     }
                 }
             }
+            Array.Clear(tcpSynClBuffer, 0, tcpSynClBuffer.Length);
             return null;
         }
 
+        //校验数据是否错位,自定义
+        public bool Crcc(byte[]writel)
+        {
+            short m = (short)IPAddress.HostToNetworkOrder(BitConverter.ToInt16(writel, 10));
+
+            short numbersum = writel[7] < 3 ? (short)(m / 8) : (short)(m * 2);
+            if ((writel[7] != tcpSynClBuffer[7]) || (numbersum != tcpSynClBuffer[8]))
+            {
+
+                System.Diagnostics.Debug.WriteLine("modbustcp读取数据错误,{0},{1}", numbersum, tcpSynClBuffer[8]);
+                Array.Clear(tcpSynClBuffer, 0, tcpSynClBuffer.Length);
+
+                return true;
+
+            }
+            else 
+            { 
+                return false;
+            }
+           
+        }
         public byte[] WriteSingleCoils(int id, int startAddress, bool OnOff)
         {
-            byte[] data;
+            lock (_async)
+            { 
+                byte[] data;
             data = CreateWriteHeader(id, startAddress, 1, 1, Modbus.fctWriteSingleCoil);
             if (OnOff == true) data[10] = 255;
             else data[10] = 0;
+            //var s=Task.Run(()=> WriteSyncData(data));
+           
             return WriteSyncData(data);
+            }
         }
 
         public byte[] WriteMultipleCoils(int id, int startAddress, ushort numBits, byte[] values)
@@ -319,6 +455,7 @@ namespace ModbusDriver
             data = CreateWriteHeader(id, startAddress, 1, 1, Modbus.fctWriteSingleRegister);
             data[10] = values[0];
             data[11] = values[1];
+    //        Task.Run(()=> {  WriteSyncData2(data); }) ;
             return WriteSyncData(data);
         }
 
@@ -333,7 +470,7 @@ namespace ModbusDriver
             return WriteSyncData(data);
         }
 
-        public IGroup AddGroup(string name, short id, int updateRate, float deadBand = 0f, bool active = false)
+        public IGroup AddGroup(string name, short id, int updateRate, float deadBand = 0f, bool active = false)              //调用plcgroup 采集数据
         {
             NetShortGroup grp = new NetShortGroup(id, name, updateRate, active, this);
             _grps.Add(grp);
@@ -376,27 +513,38 @@ namespace ModbusDriver
 
         public byte[] ReadBytes(DeviceAddress address, ushort size)
         {
-            int area = address.DBNumber;
-            return area < 3 ? WriteSyncData(CreateReadHeader(address.Area, address.Start * 16, (ushort)(16 * size), (byte)area))
-                : WriteSyncData(CreateReadHeader(address.Area, address.Start, size, (byte)area));
+            lock (_async)
+            {
+                int area = address.DBNumber;
+                return area < 3 ? WriteSyncData(CreateReadHeader(address.Area, address.Start * 16, (ushort)(16 * size), (byte)area))
+                    : WriteSyncData(CreateReadHeader(address.Area, address.Start, size, (byte)area));
+            }
         }
 
         public ItemData<int> ReadInt32(DeviceAddress address)
         {
-            byte[] data = WriteSyncData(CreateReadHeader(address.Area, address.Start, 2, (byte)address.DBNumber));
-            if (data == null)
-                return new ItemData<int>(0, 0, QUALITIES.QUALITY_BAD);
-            else
-                return new ItemData<int>(IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 0)), 0, QUALITIES.QUALITY_GOOD);
+            lock (_async)
+            {
+                byte[] data = WriteSyncData(CreateReadHeader(address.Area, address.Start, 2, (byte)address.DBNumber));
+
+                if (data == null)
+                    return new ItemData<int>(0, 0, QUALITIES.QUALITY_BAD);
+                else
+                    return new ItemData<int>(IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 0)), 0, QUALITIES.QUALITY_GOOD);
+            }
         }
 
         public ItemData<uint> ReadUInt32(DeviceAddress address)
         {
-            byte[] data = WriteSyncData(CreateReadHeader(address.Area, address.Start, 2, (byte)address.DBNumber));
-            if (data == null)
-                return new ItemData<uint>(0, 0, QUALITIES.QUALITY_BAD);
-            else
-                return new ItemData<uint>((uint)IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 0)), 0, QUALITIES.QUALITY_GOOD);
+            lock (_async)
+            {
+                byte[] data = WriteSyncData(CreateReadHeader(address.Area, address.Start, 2, (byte)address.DBNumber));
+
+                if (data == null)
+                    return new ItemData<uint>(0, 0, QUALITIES.QUALITY_BAD);
+                else
+                    return new ItemData<uint>((uint)IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 0)), 0, QUALITIES.QUALITY_GOOD);
+            }
         }
 
         public ItemData<ushort> ReadUInt16(DeviceAddress address)
@@ -480,7 +628,10 @@ namespace ModbusDriver
         {
             if (address.DBNumber < 3)
             {
-                var data = WriteSingleCoils(address.Area, address.Start + address.Bit, bit);
+
+               
+                var data = WriteSingleCoils(address.Area, address.Start  + address.Bit, bit);
+
                 return data == null ? -1 : 0;
             }
             return -1;
@@ -488,9 +639,13 @@ namespace ModbusDriver
 
         public int WriteBits(DeviceAddress address, byte bits)
         {
-            if (address.DBNumber != 3) return -1;
-            var data = WriteSingleRegister(address.Area, address.Start, new byte[] { bits });
-            return data == null ? -1 : 0;
+           
+            lock (_async)
+            {
+                if (address.DBNumber != 3) return -1;
+                var data = WriteSingleRegister(address.Area, address.Start * 16, new byte[] { bits });                        //自定义改*16
+                return data == null ? -1 : 0;
+            }
         }
 
         public int WriteInt16(DeviceAddress address, short value)

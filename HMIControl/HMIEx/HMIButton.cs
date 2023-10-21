@@ -123,7 +123,7 @@ namespace HMIControl
             {
                 if (_funcWrites.Count > 0)
                     _funcWrites.ForEach(x => x(0x2));
-            }
+            }  
             else
             {
                 if (_funcWrites.Count > 0)
@@ -156,6 +156,7 @@ namespace HMIControl
         {
             switch (key)
             {
+    
                 case TagActions.ALARM:
                     var _funcAlarm = tagChanged as Func<bool>;
                     if (_funcAlarm != null)
@@ -185,7 +186,7 @@ namespace HMIControl
                              {
                                  if (_funcAlarm())
                                  {
-                                     brush.BeginAnimation(SolidColorBrush.ColorProperty, animation);
+                                    
                                      Background = brush;
                                  }
                                  else
@@ -209,6 +210,20 @@ namespace HMIControl
                     }
                     else
                         return null;
+                
+                case TagActions.DEVICENAME:                                                    //自己加改颜色  改为红色
+                    var _funcDevicename = tagChanged as Func<bool>;
+                    if (_funcDevicename != null)
+                    {
+                        return delegate
+                        {
+                            this.Background = _funcDevicename() ? Brushes.Red : Brushes.Blue;
+                        };
+                    }
+                    else                  
+                        return null;
+                    
+                     
                 case TagActions.CAPTION:
                     var _funcCaption = tagChanged as Func<string>;
                     if (_funcCaption != null)
@@ -217,6 +232,12 @@ namespace HMIControl
                     }
                     else
                         return null;
+             
+             
+
+
+
+
             }
             return null;
         }

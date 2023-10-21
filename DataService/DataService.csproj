@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DataService</RootNamespace>
     <AssemblyName>DataService</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -163,9 +163,14 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Backstage.cs" />
     <Compile Include="CacheReader.cs" />
+    <Compile Include="carclass\Obstance.cs" />
+    <Compile Include="carclass\Spacecontal.cs" />
+    <Compile Include="carclass\station.cs" />
     <Compile Include="DeviceAddress.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Eval.cs" />

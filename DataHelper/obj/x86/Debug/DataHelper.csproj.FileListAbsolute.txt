@@ -1,0 +1,11 @@
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\bin\x86\Debug\DataHelper.dll.config
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\bin\x86\Debug\DataHelper.dll
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\bin\x86\Debug\DataHelper.pdb
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\bin\x86\Debug\DataService.dll
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\bin\x86\Debug\MySql.Data.dll
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\bin\x86\Debug\DataService.pdb
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\obj\x86\Debug\DataHelper.csproj.AssemblyReference.cache
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\obj\x86\Debug\DataHelper.csproj.CoreCompileInputs.cache
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\obj\x86\Debug\DataHelper.csproj.CopyComplete
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\obj\x86\Debug\DataHelper.dll
+D:\学习\c#\SharpSCADA-master\SCADA\Program\DataHelper\obj\x86\Debug\DataHelper.pdb

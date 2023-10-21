@@ -6,6 +6,7 @@ namespace DataService
     public interface IGroup : IDisposable
     {
         bool IsActive { get; set; }
+         Dictionary<ITag, object> writedlist { get; set; }
         short ID { get; }
         int UpdateRate { get; set; }
         float DeadBand { get; set; }             //死区 死区代表敏感度，设的小敏感度高

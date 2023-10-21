@@ -121,7 +121,7 @@ namespace DataService
                     ValueChanging(this, new ValueChangingEventArgs<Storage>(QUALITIES.QUALITY_GOOD, _value, value, _timeStamp, time));
                 }
             }
-            int result = InnerWrite(value);
+            int result = InnerWrite(value);                               //写值到对应设备中
             if (bForce || result != 0)
             {
                 var data = Read(DataSource.Device);
@@ -539,7 +539,7 @@ namespace DataService
             return false;
         }
 
-        public override Storage Read(DataSource source = DataSource.Cache)
+        public override Storage Read(DataSource source = DataSource.Cache)                    //
         {
             Storage value = Storage.Empty;
             value.DWord = _group.ReadUInt32(_plcAddress, source).Value;
@@ -695,7 +695,7 @@ namespace DataService
             return Storage.Empty;
         }
 
-        public override int Write(object value)
+        public override int Write(object value)            //写值到对应的地址
         {
             if (value == null) return -1;
             var str = (value is String) ? (String)value : value.ToString();

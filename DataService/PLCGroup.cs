@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+
+using System.Threading.Tasks;
 using System.Timers;
 
 namespace DataService
@@ -8,7 +10,8 @@ namespace DataService
     public class PLCGroup : IGroup
     {
         protected Timer _timer;
-
+        //  protected Dictionary<ITag, object> writedlist = new Dictionary<ITag, object>();
+       public Dictionary<ITag, object> writedlist { get; set; }
         protected bool _isActive;
         public virtual bool IsActive
         {
@@ -119,12 +122,15 @@ namespace DataService
             }
         }
 
+     //   Dictionary<ITag, object> IGroup.writedlist { get ; set; }
+
         protected List<PDUArea> _rangeList = new List<PDUArea>();
 
         protected PLCGroup()
         {
         }
 
+     
         public PLCGroup(short id, string name, int updateRate, bool active, IPLCDriver plcReader)
         {
             this._id = id;
@@ -215,6 +221,61 @@ namespace DataService
             return true;
         }
 
+        // 写
+        protected void writepoll()
+        {
+            Dictionary<ITag, object> writedlist2 = new Dictionary<ITag, object>();
+            writedlist2 = writedlist;
+            if (!(writedlist2== null))                           //判断写字典是否为空  !(writedlist.Count == 0)
+            {
+
+                foreach (var wt in writedlist2)
+                {
+
+
+                    ITag tag = wt.Key;
+
+                    object value = wt.Value;
+                    object type = value.GetType();
+
+                    switch (tag.Address.VarType)
+                    {
+                        case DataType.BOOL:
+                            WriteBit(tag.Address, ((bool)value));
+
+
+                            break;
+                        case DataType.BYTE:
+                            _plcReader.WriteBytes(tag.Address, BitConverter.GetBytes((byte)value));
+                           
+                            break;
+                        case DataType.WORD:
+                            WriteInt16(tag.Address, (short)value);
+                            break;
+                        case DataType.SHORT:
+                            WriteInt16(tag.Address, (short)value);
+                            break;
+                        case DataType.DWORD:
+                        WriteInt32(tag.Address, (int)value);
+                            break;
+                        case DataType.INT:
+                            WriteInt32(tag.Address, (int)value);
+                            break;
+                        case DataType.FLOAT:
+                            WriteFloat(tag.Address, (int)value);
+                            break;
+                        case DataType.STR:
+                            WriteString(tag.Address, (string)value);
+                            break;
+                    }
+
+                   
+
+                }
+                writedlist2.Clear();
+            }
+
+        }
         public bool RemoveItems(params ITag[] items)
         {
             foreach (var item in items)
@@ -225,7 +286,7 @@ namespace DataService
             UpdatePDUArea();
             return true;
         }
-
+        ///更新地址，用于连续读      
         protected void UpdatePDUArea()
         {
             int count = _items.Count;
@@ -303,6 +364,12 @@ namespace DataService
         }
 
         object sync = new object();
+        /// <summary>
+        /// 定时器，定时采集更新调用
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// 
         protected void timer_Timer(object sender, EventArgs e)
         {
             if (_isActive)
@@ -310,6 +377,9 @@ namespace DataService
                 lock (sync)
                 {
                     _changedList.Clear();
+
+                   
+                    writepoll();
                     Poll();
                     if (_changedList.Count > 0)
                         Update();
@@ -318,6 +388,7 @@ namespace DataService
             else
                 return;
         }
+
 
         protected virtual void Poll()
         {
@@ -384,7 +455,9 @@ namespace DataService
                 offset += rcvBytes.Length;
             }
         }
-
+        /// <summary>
+        /// 更新采集到的数据
+        /// </summary>
         protected void Update()
         {
             DateTime dt = DateTime.Now;
@@ -397,7 +470,7 @@ namespace DataService
                     ITag item = _items[index];
                     var itemData = item.Read();
                     if (item.Active)
-                        item.Update(itemData, dt, QUALITIES.QUALITY_GOOD);
+                        item.Update(itemData, dt, QUALITIES.QUALITY_GOOD);                           //更新值到集合
                     if (_deadband == 0 || (item.Address.VarType == DataType.FLOAT &&
                         (Math.Abs(itemData.Single / item.Value.Single - 1) > _deadband)))
                     {
@@ -408,14 +481,14 @@ namespace DataService
                         i++;
                     }
                 }
-                foreach (DataChangeEventHandler deleg in DataChange.GetInvocationList())
+                foreach (DataChangeEventHandler deleg in DataChange.GetInvocationList())          //批量变化数据推送到订阅
                 {
-                    deleg.BeginInvoke(this, new DataChangeEventArgs(1, values), null, null);
+                    deleg.BeginInvoke(this, new DataChangeEventArgs(1, values), null, null);       //触发datachange 事件写入值
                 }
             }
             else
             {
-                foreach (int index in _changedList)
+                foreach (int index in _changedList)                  //单个tag订阅后触发单个tag值变化事件
                 {
                     ITag item = _items[index];
                     if (item.Active)
@@ -528,7 +601,7 @@ namespace DataService
             return source == DataSource.Cache ? _cacheReader.ReadInt32(address) : _plcReader.ReadInt32(address);
         }
 
-        public ItemData<uint> ReadUInt32(DeviceAddress address, DataSource source = DataSource.Cache)
+        public ItemData<uint> ReadUInt32(DeviceAddress address, DataSource source = DataSource.Cache)     
         {
             return source == DataSource.Cache ? _cacheReader.ReadUInt32(address) : _plcReader.ReadUInt32(address);
         }
@@ -567,7 +640,16 @@ namespace DataService
 
         public int WriteInt32(DeviceAddress address, int value)
         {
-            int rs = _plcReader.WriteInt32(address, value);
+         //   Int32 m = ((value << 8) & 0xFF00FF00) | (value >> 8) & 0x00FF00FF);    //改，大小端转换
+            byte[] mn = BitConverter.GetBytes(value);
+            byte[] mm = new byte[4];
+            mm[0] = mn[2];
+            mm[1] = mn[3];
+            mm[2] = mn[0];
+            mm[3] = mn[1];
+            int m = BitConverter.ToInt32(mm,0);
+            //   Int32 m = ((value << 8) & 0xFF00FF00) | ((value >> 8) & 0x00FF00FF);    //改，大小端转换
+            int rs = _plcReader.WriteInt32(address, m);
             if (rs >= 0)
             {
                 if (DataChange != null)
@@ -585,7 +667,8 @@ namespace DataService
 
         public int WriteUInt32(DeviceAddress address, uint value)
         {
-            int rs = _plcReader.WriteUInt32(address, value);
+            UInt32 m =  ((value << 8) & 0xFF00FF00) | ((value >> 8) & 0x00FF00FF);    //改，大小端转换
+            int rs = _plcReader.WriteUInt32(address, m);
             if (rs >= 0)
             {
                 if (DataChange != null)
@@ -675,7 +758,10 @@ namespace DataService
 
         public int WriteBit(DeviceAddress address, bool value)
         {
-            int rs = _plcReader.WriteBit(address, value);
+
+            DeviceAddress m = address;
+             m.Start = m.Start * 16;                                  //由于转换到了区域读，所以重新*16转为实际的地址读取，目前只针对写位
+            int rs = _plcReader.WriteBit(m, value);
             if (rs >= 0)
             {
                 if (DataChange != null)
@@ -841,12 +927,14 @@ namespace DataService
                 byte[] rcvBytes = _plcReader.ReadBytes(area.Start, (ushort)area.Len);//从PLC读取数据  
                 if (rcvBytes == null || rcvBytes.Length == 0)
                 {
-                    offset += (area.Len + 1) / 2;
+                    //  offset += (area.Len + 1) / 2;
+                    offset += area.Len ;
                     //_plcReader.Connect();
                     continue;
                 }
                 else
                 {
+               
                     int len = rcvBytes.Length / 2;
                     fixed (byte* p1 = rcvBytes)
                     {
@@ -1014,6 +1102,9 @@ namespace DataService
                 }
             }
         }
+
+
+       
 
     }
 }

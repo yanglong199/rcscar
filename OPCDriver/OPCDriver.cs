@@ -101,6 +101,8 @@ namespace OPCDriver
             get { return _items; }
         }
 
+        public Dictionary<ITag, object> writedlist { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         object _grpObj;
         private IOPCItemMgt _itemMgt;
         private IOPCGroupStateMgt2 _grpState;

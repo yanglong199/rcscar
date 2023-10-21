@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace DataService
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct DeviceAddress : IComparable<DeviceAddress>
+    public struct DeviceAddress : IComparable<DeviceAddress>       //地址接口，将读取的地址、长度、类型等数据
     {
         public int Area;
         public int Start;
